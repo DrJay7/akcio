@@ -60,7 +60,7 @@ def check_api():
 @app.get('/answer')
 def do_answer_api(session_id: str, project: str, question: str):
     try:
-        new_question, final_answer = chat(session_id=session_id, project=project, question=question)
+        new_question, final_answer, contexts = chat(session_id=session_id, project=project, question=question, debug_context=True)
         assert isinstance(final_answer, str)
         return jsonable_encoder({
             'status': True,
@@ -69,6 +69,7 @@ def do_answer_api(session_id: str, project: str, question: str):
                 'original question': question,
                 'modified question': new_question,
                 'answer': final_answer,
+                'contexts': contexts
             }
             }), 200
     except Exception as e:  # pylint: disable=W0703

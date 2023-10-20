@@ -19,13 +19,17 @@ insert_pipeline = towhee_pipelines.insert_pipeline
 search_pipeline = towhee_pipelines.search_pipeline
 
 
-def chat(session_id, project, question):
+def chat(session_id, project, question, debug_context=False):
     '''Chat API'''
     try:
         history = memory_store.get_history(project, session_id)
         res = search_pipeline(question, history, project).get()
         if len(res) == 2:
-            new_question, final_answer = res
+            if debug_context:
+                final_answer, contexts = res
+                new_question = question
+            else:
+                new_question, final_answer = res
         elif len(res) == 1:
             new_question = question
             final_answer = res[0]
@@ -34,7 +38,10 @@ def chat(session_id, project, question):
         # Update history
         messages = [(question, final_answer)]
         memory_store.add_history(project, session_id, messages)
-        return new_question, final_answer
+        if debug_context:
+            return new_question, final_answer, contexts
+        else:
+            return new_question, final_answer
     except Exception as e: # pylint: disable=W0703
         return question, f'Something went wrong:\n{e}'
 
